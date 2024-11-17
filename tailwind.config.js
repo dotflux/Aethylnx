@@ -44,7 +44,9 @@ export default {
     },
   },
   fontFamily:{
-    'gilroyH':['Gilroy Heavy','sans-serif']
+    'gilroyH':['Gilroy Heavy','sans-serif'],
+    'passion1B':['PassionOne Black','sans-serif'],
+    'passion1R':['PassionOne Regular','sans-serif']
   },
   backdropBlur:{
     'lg':'10px'

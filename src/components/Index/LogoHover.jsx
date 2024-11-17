@@ -8,13 +8,11 @@ const LogoHover = ({ logo, info, title }) => {
         <img src={logo} alt="logo" className="w-full h-full" />
       </div>
 
-      {/* Info Box (Below the Icon) */}
-      <div className="absolute left-1/2 transform -translate-x-1/2 mt-2 opacity-0 group-hover:opacity-100 bg-white text-black text-sm p-4 rounded-md shadow-lg transition-opacity duration-300 ease-in-out w-52 z-10">
-        <div className="text-base font-bold mb-2">{title}</div>
-        <p className="leading-relaxed">
-          {info}
-        </p>
-      </div>
+      {/* Info Box (Above the Icon) */}
+      <div className="absolute left-1/2 bottom-full transform -translate-x-1/2 mb-2 opacity-0 group-hover:opacity-100 bg-white text-black text-sm p-4 rounded-md shadow-lg transition-opacity duration-300 ease-in-out w-52 z-10">
+  <div className="text-base font-bold mb-2">{title}</div>
+  <p className="leading-relaxed">{info}</p>
+</div>
     </div>
   );
 };

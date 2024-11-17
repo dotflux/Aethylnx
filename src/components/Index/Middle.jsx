@@ -1,6 +1,4 @@
 import React from "react";
-import myLogo from "../../assets/outlined_logo_DarkRuke.png";
-import { useMotionValue, useTransform, motion } from "framer-motion";
 import LogoHover from "./LogoHover";
 import chatIcon from "../../assets/chat.svg";
 import userIcon from "../../assets/user.svg";
@@ -8,54 +6,7 @@ import shieldIcon from "../../assets/shield.svg";
 import lockIcon from "../../assets/lock.svg";
 import groupIcon from "../../assets/usergroup.svg";
 import GetStarted from "./GetStarted";
-
-
-const AnimatedCard = () => {
-  // Initial position values
-  const x = useMotionValue(-59);
-  const y = useMotionValue(10);
-
-  // Transformations based on motion values
-  const rotateX = useTransform(y, [-100, 100], [30, -30]);
-  const rotateY = useTransform(x, [-100, 100], [-30, 30]);
-
-  const handleDragEnd = () => {
-    x.set(-59,true)
-    y.set(10,true)
-    
-};
-
-  return (
-    <div style={{ perspective: 2000 }} className="">
-      {/* card */}
-      <motion.div
-        style={{ x, y, rotateX, rotateY, z: 100 }}
-        drag
-        dragElastic={0.18}
-        dragConstraints={{ top: 10 - 50, left: -59 - 50, right: -59 + 50, bottom: 10 + 50 }}
-        whileTap={{ cursor: "grabbing" }}
-        onDragEnd={handleDragEnd} // Call function to reset position
-        className="w-[426px] min-h-[400px] bg-white rounded-[30px] border-[4px] border-white px-[40px] py-[24px] cursor-grab relative shadow-lg backdrop-blur-md bg-opacity-20"
-      >
-        <div className="mb-12">
-          <img
-            src={myLogo}
-            alt=""
-            className="h-24 w-24 absolute top-0 left-0"
-          />
-        </div>
-        <h1 className="text-5xl mb-6 font-extrabold text-white drop-shadow-lg">
-          Bridging Conversations
-        </h1>
-        <p className="max-w-[300px] text-white mb-6">
-          Create your unique chat experiences with us!
-        </p>
-      </motion.div>
-    </div>
-  );
-};
-
-
+import AnimatedCard from "./AnimatedCard";
 
 const Middle = () => {
   return (
@@ -64,25 +15,25 @@ const Middle = () => {
       <div className="flex flex-col md:flex-row justify-between items-start gap-6 mx-4">
         
         {/* Text section */}
-        <div className="md:w-1/2 text-left font-gilroyH">
-          <h1 className="text-5xl text-white font-bold leading-tight mb-4">
-            Where Conversations Connect
+        <div className="md:w-1/2 text-left">
+          <h1 className="text-5xl text-white leading-tight mb-4 font-passion1B">
+            WHERE CONVERSATIONS CONNECT
           </h1>
-          <p className="text-lg text-gray-300 leading-relaxed mb-6">
+          <p className="text-2xl text-gray-300 leading-relaxed mb-6 font-passion1R">
             Aethylnx makes chatting more personal, fun, and connected. Whether
             you're gaming with friends, catching up with family, or building a
             community, we've got you covered. Customize your space, keep it
-            secure, and enjoy high-performance connection â because
+            secure, and enjoy high-performance connection - because
             communication should be seamless.
           </p>
-          <p className="text-lg text-gray-300 leading-relaxed mb-6">
+          <p className="text-2xl text-gray-300 leading-relaxed mb-6 font-passion1R">
             Experience the freedom to connect without barriers. Aethylnx offers
             a streamlined chat environment tailored for your needs, empowering
             you to communicate effortlessly.
           </p>
 
           {/* GetStarted Button */}
-          <div className="w-full flex justify-start -mx-10">
+          <div className="w-full flex justify-start -mx-10 font-bold">
             <GetStarted className="w-full" /> {/* Stretch button */}
           </div>
         </div>

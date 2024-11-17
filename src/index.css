@@ -3,15 +3,31 @@
 @tailwind utilities;
 
 @font-face {
-    font-family: 'Gilroy Heavy';
-    src: url('./src/fonts/Gilroy-Heavy.ttf') format(truetype);
-    font-weight: normal;
-    font-style: normal;
-  }
+  font-family: 'Gilroy Heavy';
+  src: url('./src/fonts/Gilroy-Heavy.woff2') format('woff2');
+  font-weight: normal;
+  font-style: normal;
+}
 
-  html, body {
-    height: 100%;
-    margin: 0;
-    padding: 0;
-    overflow-x: hidden; /* Prevent horizontal scrolling */
-  }
+@font-face {
+  font-family: 'PassionOne Black';
+  src: url('./src/fonts/PassionOne-Black.woff2') format('woff2');
+  font-weight: normal;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'PassionOne Regular';
+  src: url('./src/fonts/PassionOne-Regular.woff2') format('woff2');
+  font-weight: normal;
+  font-style: normal;
+}
+
+html,
+body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
+  /* Prevent horizontal scrolling */
+}
