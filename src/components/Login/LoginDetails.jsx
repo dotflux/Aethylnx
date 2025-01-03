@@ -4,25 +4,29 @@ import showIcon from "../../assets/show.svg";
 import hideIcon from "../../assets/hide.svg";
 import errorIcon from "../../assets/error.svg";
 import { useForm } from "react-hook-form";
-import Loader from "./Loader";
-import { useNavigate, useLocation, Link } from "react-router-dom";
+import Loader from "../Signup/Loader.jsx";
+import { useNavigate, useLocation } from "react-router-dom";
 import { toast, ToastContainer, Bounce } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import { Link } from "react-router-dom";
 
-const Details = () => {
-  const navigate = useNavigate();
+const LoginDetails = () => {
   const location = useLocation();
+  const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
   const {
     register,
     handleSubmit,
     setError,
+    clearErrors,
+    watch,
     formState: { errors, isSubmitting },
   } = useForm();
-
-  const detailsPopups = () => {
-    if (location.state?.noPara) {
-      toast.error("Unauthorized Access", {
+  const emailValue = watch("email");
+  const passValue = watch("password");
+  const loginPopups = () => {
+    if (location.state?.registerFinish) {
+      toast.success("Registration Successful", {
         position: "top-right",
         autoClose: 5000,
         hideProgressBar: false,
@@ -34,12 +38,32 @@ const Details = () => {
         transition: Bounce,
       });
     }
-    navigate(location.pathname, { replace: true });
+    if (location.state?.passChange) {
+      toast.success("Changed Password Successfully", {
+        position: "top-right",
+        autoClose: 5000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+        theme: "colored",
+        transition: Bounce,
+      });
+    }
+    navigate(location.pathname, {
+      replace: true,
+    });
   };
+  useEffect(() => {
+    loginPopups();
+  }, []);
 
   useEffect(() => {
-    detailsPopups();
-  }, []);
+    if (emailValue || passValue) {
+      clearErrors("generic");
+    }
+  }, [emailValue, passValue]);
 
   const delay = (d) => {
     return new Promise((resolve, reject) => {
@@ -52,7 +76,7 @@ const Details = () => {
   const onSubmit = async (data) => {
     try {
       await delay(5);
-      const r = await fetch("http://localhost:3000/signup", {
+      const r = await fetch("http://localhost:3000/login", {
         method: "POST",
         credentials: "include",
         headers: {
@@ -69,9 +93,7 @@ const Details = () => {
         return;
       }
       if (r.ok) {
-        navigate(`/signup/otp?email=${data.email}`, {
-          state: { emailSent: true },
-        });
+        navigate("/home");
       }
     } catch (err) {
       console.log("Network error:", err);
@@ -81,7 +103,7 @@ const Details = () => {
   return (
     <div>
       <div className="max-w-md mx-auto relative overflow-hidden z-10 bg-gray-800 p-8 rounded-lg shadow-md before:w-24 before:h-24 before:absolute before:bg-blue-700 before:rounded-full before:-z-10 before:blur-2xl after:w-32 after:h-32 after:absolute after:bg-blue-900 after:rounded-full after:-z-10 after:blur-xl after:top-24 after:-right-12">
-        <h2 className="text-2xl font-bold text-white mb-6">Register Now</h2>
+        <h2 className="text-2xl font-bold text-white mb-6">Login Now</h2>
 
         <form
           method="post"
@@ -89,36 +111,6 @@ const Details = () => {
           noValidate
           onSubmit={handleSubmit(onSubmit)}
         >
-          <div className="mb-4">
-            <label
-              className="block text-sm font-medium text-gray-300"
-              htmlFor="username"
-            >
-              Username
-            </label>
-            <input
-              className="mt-1 p-2 w-full bg-gray-700 border border-gray-600 rounded-md text-white"
-              {...register("username", {
-                minLength: {
-                  value: 5,
-                  message: "The username must be minimum 5 letters",
-                },
-                maxLength: {
-                  value: 10,
-                  message: "The username exceeds the limit of 10 letters",
-                },
-              })}
-              placeholder="Minimum 5 letters and Maximum 10 letters"
-              type="text"
-            />
-            {errors.username && (
-              <div className="flex justify-start items-start">
-                <img src={errorIcon} alt="" />{" "}
-                <h3 className="text-red-600">{errors.username.message}</h3>
-              </div>
-            )}
-          </div>
-
           <div className="mb-4">
             <label
               className="block text-sm font-medium text-gray-300"
@@ -135,7 +127,7 @@ const Details = () => {
                   message: "Invalid email format",
                 },
               })}
-              placeholder="example@gmail.com"
+              placeholder="Enter your email"
               type="email"
             />
             {errors.email && (
@@ -157,17 +149,9 @@ const Details = () => {
               className="mt-1 p-2 w-full bg-gray-700 border border-gray-600 rounded-md text-white"
               {...register("password", {
                 required: { value: true, message: "This field is required" },
-                minLength: {
-                  value: 8,
-                  message: "The password must be minimum 8 letters",
-                },
-                maxLength: {
-                  value: 12,
-                  message: "The password exceeds the limit of 12 letters",
-                },
               })}
               type={showPassword ? "text" : "password"}
-              placeholder="Minimum 8 letters and Maximum 12 letters"
+              placeholder="Enter your password"
             />
             <div
               className="absolute inset-y-11 right-2 flex items-center pr-3 cursor-pointer"
@@ -189,10 +173,24 @@ const Details = () => {
             )}
           </div>
           <div>{isSubmitting && <Loader />}</div>
+          <div>
+            {errors.generic && (
+              <div className="flex justify-start items-start">
+                <img src={errorIcon} alt="" />{" "}
+                <h3 className="text-red-600">{errors.generic.message}</h3>
+              </div>
+            )}
+          </div>
           <div className="flex justify-start z-10 relative space-x-2 mb-4">
-            <h3 className="text-white">Already have an account?</h3>{" "}
-            <Link to="/login" className="text-blue-300">
-              Login Now
+            <Link to="/forget-password" className="text-blue-300">
+              Forgot Password?
+            </Link>
+          </div>
+
+          <div className="flex justify-start z-10 relative space-x-2 mb-4">
+            <h3 className="text-white">Don't have an account?</h3>{" "}
+            <Link to="/signup" className="text-blue-300">
+              Register Now
             </Link>
           </div>
           <div className="flex justify-center">
@@ -203,7 +201,7 @@ const Details = () => {
               type="submit"
               disabled={isSubmitting}
             >
-              Register
+              Login
             </button>
           </div>
         </form>
@@ -213,4 +211,4 @@ const Details = () => {
   );
 };
 
-export default Details;
+export default LoginDetails;

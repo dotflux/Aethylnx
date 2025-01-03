@@ -51,7 +51,7 @@ export const validate = async (req, res) => {
   }
 
   if (existingDummy) {
-    validationErrors.push({ error: "Email is under authentication please wait 5 minutes to u", type: "email" });
+    validationErrors.push({ error: "Email is under authentication please wait 5 minutes", type: "email" });
   }
 
   const fields = [
