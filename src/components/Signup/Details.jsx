@@ -99,6 +99,7 @@ const Details = () => {
             <input
               className="mt-1 p-2 w-full bg-gray-700 border border-gray-600 rounded-md text-white"
               {...register("username", {
+                required: { value: true, message: "This field is required" },
                 minLength: {
                   value: 5,
                   message: "The username must be minimum 5 letters",

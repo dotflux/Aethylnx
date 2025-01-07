@@ -17,7 +17,9 @@ export const protectRoute = async (req, res) => {
         return res.status(404).json({ valid: false, error: "User not found" });
       }
       req.user = user;
-      res.status(200).json({ valid: true, message: "Valid user token" });
+      res
+        .status(200)
+        .json({ valid: true, message: "Valid user token", user: user });
       return;
     } catch (err) {
       res.status(400).json({ valid: false, error: "Invalid Token" });

@@ -26,8 +26,17 @@ export const sendMessage = async (req, res) => {
         .json({ valid: false, error: "Cant send message to yourself" });
     }
 
+    if (message.length >= 2000) {
+      return res
+        .status(401)
+        .json({
+          valid: false,
+          error: "Message exceeds limit of 2000 characters",
+        });
+    }
+
     if (!recieverId) {
-      return res.status(400).json({ valid: false, error: "Need a reciever" });
+      return res.status(402).json({ valid: false, error: "Need a reciever" });
     }
 
     let sender = await userModel.findOne({
@@ -80,7 +89,7 @@ export const sendMessage = async (req, res) => {
     return;
   } catch (error) {
     console.log(`error in sending msg: ${error}`);
-    res.status(400).json({ valid: false, error: "Internal server error" });
+    res.status(402).json({ valid: false, error: "Internal server error" });
     return;
   }
 };

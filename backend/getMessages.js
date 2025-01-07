@@ -17,6 +17,7 @@ export const getMessages = async (req, res) => {
       return res.status(400).json({ valid: false, error: "Invalid Token" });
     }
     const recieverId = req.params.id;
+
     const senderUser = await userModel.findOne({ userId: decoded.id });
     const conversation = await conversationModel
       .findOne({
@@ -25,11 +26,26 @@ export const getMessages = async (req, res) => {
       .populate({ path: "messages", model: messageModel });
 
     if (!conversation) {
-      res.status(404).json({ valid: false, error: "Conversation Not Found" });
+      return res
+        .status(404)
+        .json({ valid: false, error: "Conversation Not Found" });
     }
-    res.status(200).json({ valid: true, messages: conversation.messages });
+    const recieverUser = await userModel.findOne({ _id: recieverId });
+    const reciever = {
+      username: recieverUser.username,
+      id: recieverUser._id,
+      avatarURL: recieverUser.avatarURL,
+      displayName: recieverUser.displayName,
+    };
+    return res.status(200).json({
+      valid: true,
+      messages: conversation.messages,
+      recieverInfo: reciever,
+    });
   } catch (error) {
     console.error(`Error fetching messages: ${error}`);
-    res.status(500).json({ valid: false, message: "Internal server error" });
+    return res
+      .status(500)
+      .json({ valid: false, message: "Internal server error" });
   }
 };

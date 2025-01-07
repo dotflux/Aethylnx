@@ -42,6 +42,9 @@ export const getParticipantDetails = async (req, res) => {
       username: user.username,
       userId: user._id,
       isActive: user.isActive,
+      avatarURL: user.avatarURL,
+      displayName: user.displayName,
+      _id: user._id,
     };
     if (!user) {
       return res
@@ -79,6 +82,7 @@ export const getSenderDetails = async (req, res) => {
       isActive: user.isActive,
       displayName: user.displayName,
       avatarURL: user.avatarURL,
+      _id: user._id,
     };
     if (!user) {
       return res

@@ -7,6 +7,7 @@ import Login from "./components/Login/Login.jsx";
 import ForgotPass from "./components/ForgotPass/ForgotPass.jsx";
 import ForgotPassOtp from "./components/ForgotPass/ForgotPassOtp.jsx";
 import Home from "./components/HomePage/Home.jsx";
+import Profile from "./components/ProfilePage/Profile.jsx";
 
 function App() {
   const router = createBrowserRouter([
@@ -37,6 +38,10 @@ function App() {
     {
       path: "/home",
       element: <Home />,
+    },
+    {
+      path: "/profile",
+      element: <Profile />,
     },
   ]);
   return (

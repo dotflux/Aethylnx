@@ -3,12 +3,16 @@ import { useLocation } from "react-router-dom";
 import MessageBox from "./MessageBox";
 import ChatBox from "./ChatBox";
 import io from "socket.io-client";
+import defaultPfp from "../../assets/defaultPfp.png";
 
 const socket = io("http://localhost:3000");
 
 const ChatWindow = ({ user }) => {
   const [autoScroll, setAutoScroll] = useState(true);
   const [messages, setMessages] = useState([]);
+  const [recieverInfo, setReciever] = useState(null);
+  const [isTyping, setTyping] = useState(false);
+  const [typingId, setTypingId] = useState(null);
   const bottomRef = useRef(null);
   const chatWindowRef = useRef(null);
   const location = useLocation();
@@ -32,6 +36,7 @@ const ChatWindow = ({ user }) => {
       const result = await response.json();
       if (result.valid) {
         setMessages(result.messages);
+        setReciever(result.recieverInfo);
       } else {
         console.error(result.error);
       }
@@ -70,19 +75,61 @@ const ChatWindow = ({ user }) => {
     socket.on("receive_message", (newMessage) => {
       setMessages((prevMessages) => [...prevMessages, newMessage]);
     });
-
     // Cleanup on component unmount
     return () => {
       socket.off("receive_message");
     };
-  }, [currentChannel, user, messages]);
+  }, [currentChannel, user]);
 
+  useEffect(() => {
+    socket.on("typing", ({ channelId, typerId }) => {
+      console.log("Received typerId on client:", typerId); // 🔍 Check if it's null
+      setTypingId(typerId);
+    });
+    return () => {
+      socket.off("typing");
+    };
+  }, [currentChannel, user, recieverInfo, isTyping]);
   return (
     <div
       ref={chatWindowRef}
       onScroll={handleScroll}
-      className="fixed top-0 left-72 right-0 bottom-16 p-4 overflow-y-auto"
+      className={`fixed top-0 left-0 bottom-16 right-0 ${
+        currentChannel && "md:left-72"
+      } p-4 bg-gradient-to-b from-gray-800 to-gray-900 flex-1 overflow-y-auto ${
+        currentChannel ? "z-30" : "z-10"
+      }`}
     >
+      {currentChannel && (
+        <div
+          className={`fixed flex items-center ${
+            currentChannel && "md:left-72"
+          } left-0 top-0 right-0 bg-slate-950 w-full h-20 px-2`}
+        >
+          <img
+            src={recieverInfo?.avatarURL || defaultPfp}
+            alt="Receiver's Profile"
+            className="w-14 h-14 rounded-full"
+          />
+          <div className="ml-4 flex flex-col justify-center">
+            <h2 className="text-white text-lg font-bold leading-tight">
+              {recieverInfo
+                ? recieverInfo.displayName === ""
+                  ? recieverInfo.username
+                  : recieverInfo.displayName
+                : "Reciever"}
+            </h2>
+            <p className="text-gray-400 text-sm">
+              {recieverInfo
+                ? recieverInfo.displayName === ""
+                  ? ""
+                  : recieverInfo.username
+                : ""}
+            </p>
+          </div>
+        </div>
+      )}
+
       <div className="flex-1 overflow-y-auto p-12">
         {currentChannel ? (
           messages && messages.length > 0 ? (
@@ -91,6 +138,9 @@ const ChatWindow = ({ user }) => {
                 key={message._id || index}
                 messageContent={message.message}
                 senderId={message.senderId}
+                lastSenderId={index > 0 ? messages[index - 1].senderId : null}
+                createdAt={message.createdAt}
+                lastCreatedAt={index > 0 ? messages[index - 1].createdAt : null}
               />
             ))
           ) : (
@@ -104,7 +154,20 @@ const ChatWindow = ({ user }) => {
           </h1>
         )}
       </div>
-      {currentChannel && <ChatBox currentChannel={currentChannel} />}
+      {typingId == currentChannel
+        ? isTyping && (
+            <h1 className="text-white text-2xl relative z-40">{`${recieverInfo.username} is typing`}</h1>
+          )
+        : ""}
+      {currentChannel && (
+        <ChatBox
+          currentChannel={currentChannel}
+          userId={user._id}
+          isTyping={isTyping}
+          setTyping={setTyping}
+          recieverId={currentChannel}
+        />
+      )}
       <div ref={bottomRef} />
     </div>
   );
