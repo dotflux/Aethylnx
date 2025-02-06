@@ -8,6 +8,8 @@ import ForgotPass from "./components/ForgotPass/ForgotPass.jsx";
 import ForgotPassOtp from "./components/ForgotPass/ForgotPassOtp.jsx";
 import Home from "./components/HomePage/Home.jsx";
 import Profile from "./components/ProfilePage/Profile.jsx";
+import FindUsers from "./components/FindUsers/FindUsers.jsx";
+import { ToastContainer } from "react-toastify";
 
 function App() {
   const router = createBrowserRouter([
@@ -40,6 +42,10 @@ function App() {
       element: <Home />,
     },
     {
+      path: "/home/find",
+      element: <FindUsers />,
+    },
+    {
       path: "/profile",
       element: <Profile />,
     },
@@ -47,6 +53,7 @@ function App() {
   return (
     <>
       <RouterProvider router={router} />
+      <ToastContainer />
     </>
   );
 }

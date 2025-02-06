@@ -81,6 +81,7 @@ const ChangePfp = ({ user }) => {
                 transition: Bounce,
               });
               socket.emit("profileUpdated", {
+                id: user._id,
                 avatarURL: result.imageUrl,
               });
               setProfilePic(result.imageUrl);
@@ -150,7 +151,6 @@ const ChangePfp = ({ user }) => {
 
       {/* Show loading indicator or error */}
       {loading && <LoaderModal />}
-      <ToastContainer />
     </div>
   );
 };

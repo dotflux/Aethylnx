@@ -14,15 +14,27 @@ const messageSchema = new mongoose.Schema(
   {
     senderId: {
       type: String,
-      required: true,
       ref: "usersInfo",
     },
     recieverId: {
       type: String,
-      required: true,
       ref: "usersInfo",
+      default: null,
     },
-    message: { type: String, required: true, ref: "messages" },
+    edited: {
+      type: Boolean,
+      default: false,
+      ref: "messages",
+    },
+    message: { type: String, ref: "messages" },
+    fileUrl: { type: String },
+    fileType: { type: String },
+    replyTo: {
+      type: String,
+      ref: "messages",
+    },
+    read: { type: Boolean, default: false },
+    system: { type: Boolean, default: false },
   },
   { timestamps: true }
 );

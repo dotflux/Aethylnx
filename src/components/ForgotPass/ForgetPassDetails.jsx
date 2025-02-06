@@ -133,7 +133,6 @@ const ForgetPassDetails = () => {
           </form>
         </div>
       </div>
-      <ToastContainer />
     </div>
   );
 };

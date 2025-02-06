@@ -4,22 +4,33 @@ import MessageBox from "./MessageBox";
 import ChatBox from "./ChatBox";
 import io from "socket.io-client";
 import defaultPfp from "../../assets/defaultPfp.png";
+import UserInfoPopup from "./UserInfoPopup";
+import { toast, Bounce } from "react-toastify";
+import { chatWindowSocketHandler } from "./chatWindowSocketHandler";
+import TypingIndicator from "./TypingIndicator";
+import ReplyBar from "./ReplyBar";
+import ChatWindowHeader from "./ChatWindowHeader";
 
 const socket = io("http://localhost:3000");
 
 const ChatWindow = ({ user }) => {
   const [autoScroll, setAutoScroll] = useState(true);
   const [messages, setMessages] = useState([]);
+  const [filteredMessages, setFilteredMessages] = useState([]);
   const [recieverInfo, setReciever] = useState(null);
   const [isTyping, setTyping] = useState(false);
   const [typingId, setTypingId] = useState(null);
   const bottomRef = useRef(null);
+  const searchRef = useRef(null);
   const chatWindowRef = useRef(null);
   const location = useLocation();
   const queryParams = new URLSearchParams(location.search);
   const currentChannel = queryParams.get("channel");
+  const [popupMessageId, setPopupMessageId] = useState(null);
+  const [showPopup, setPopup] = useState(false);
+  const [replyTo, setReply] = useState(null);
+  const [repliedContent, setRepliedContent] = useState(null);
 
-  // Fetch initial messages
   const fetchMessages = async () => {
     if (!user || !currentChannel) return;
     try {
@@ -34,11 +45,16 @@ const ChatWindow = ({ user }) => {
         }
       );
       const result = await response.json();
-      if (result.valid) {
+      if (result.valid && response.ok) {
         setMessages(result.messages);
+        setFilteredMessages(result.messages);
         setReciever(result.recieverInfo);
       } else {
+        if (result.recieverInfo) {
+          setReciever(result.recieverInfo);
+        }
         console.error(result.error);
+        return;
       }
     } catch (error) {
       console.error("Error fetching messages:", error);
@@ -66,30 +82,43 @@ const ChatWindow = ({ user }) => {
     if (autoScroll) {
       bottomRef.current?.scrollIntoView({ behavior: "smooth" });
     }
-  }, [messages]);
-
-  // Fetch messages and set up socket listener
-  useEffect(() => {
-    fetchMessages();
-
-    socket.on("receive_message", (newMessage) => {
-      setMessages((prevMessages) => [...prevMessages, newMessage]);
-    });
-    // Cleanup on component unmount
-    return () => {
-      socket.off("receive_message");
-    };
-  }, [currentChannel, user]);
+  }, [messages, autoScroll]);
 
   useEffect(() => {
-    socket.on("typing", ({ channelId, typerId }) => {
-      console.log("Received typerId on client:", typerId); // 🔍 Check if it's null
-      setTypingId(typerId);
-    });
-    return () => {
-      socket.off("typing");
-    };
-  }, [currentChannel, user, recieverInfo, isTyping]);
+    // Reset reply state when channel changes
+    setReply(null);
+    setRepliedContent(null);
+  }, [currentChannel]);
+
+  chatWindowSocketHandler({
+    user,
+    socket,
+    currentChannel,
+    setMessages,
+    messages,
+    fetchMessages,
+    toast,
+    setTypingId,
+    setTyping,
+    typingId,
+    Bounce,
+  });
+
+  const handleSearch = (e) => {
+    const query = e.target.value.toLowerCase();
+    const filtered = messages.filter((msg) =>
+      msg.message.toLowerCase().includes(query)
+    );
+    setFilteredMessages(filtered);
+    if (filtered.length > 0) {
+      // Scroll to the first matched message
+      const matchedMessage = document.getElementById(filtered[0]._id);
+      if (matchedMessage) {
+        matchedMessage.scrollIntoView({ behavior: "smooth", block: "center" });
+      }
+    }
+  };
+
   return (
     <div
       ref={chatWindowRef}
@@ -100,47 +129,60 @@ const ChatWindow = ({ user }) => {
         currentChannel ? "z-30" : "z-10"
       }`}
     >
-      {currentChannel && (
-        <div
-          className={`fixed flex items-center ${
-            currentChannel && "md:left-72"
-          } left-0 top-0 right-0 bg-slate-950 w-full h-20 px-2`}
-        >
-          <img
-            src={recieverInfo?.avatarURL || defaultPfp}
-            alt="Receiver's Profile"
-            className="w-14 h-14 rounded-full"
+      <ChatWindowHeader
+        handleSearch={handleSearch}
+        searchRef={searchRef}
+        currentChannel={currentChannel}
+        recieverInfo={recieverInfo}
+        setPopup={setPopup}
+        showPopup={showPopup}
+        defaultPfp={defaultPfp}
+      />
+      {showPopup && (
+        <div className="ml-12">
+          <UserInfoPopup
+            avatarUrl={recieverInfo?.avatarURL || defaultPfp}
+            username={recieverInfo?.username || ""}
+            displayname={recieverInfo?.displayName || ""}
+            isActive={recieverInfo?.isActive || false}
+            bio={recieverInfo?.bio || ""}
+            showSocialButtons={true}
+            id={recieverInfo.id}
+            closePopup={() => setPopup(false)}
+            isBlocked={recieverInfo.isBlocked}
           />
-          <div className="ml-4 flex flex-col justify-center">
-            <h2 className="text-white text-lg font-bold leading-tight">
-              {recieverInfo
-                ? recieverInfo.displayName === ""
-                  ? recieverInfo.username
-                  : recieverInfo.displayName
-                : "Reciever"}
-            </h2>
-            <p className="text-gray-400 text-sm">
-              {recieverInfo
-                ? recieverInfo.displayName === ""
-                  ? ""
-                  : recieverInfo.username
-                : ""}
-            </p>
-          </div>
         </div>
       )}
 
-      <div className="flex-1 overflow-y-auto p-12">
+      <div className="flex-1 overflow-y-auto mt-20 mb-12 md:mb-12 md:ml-3 md:mt-20 justify-start items-start">
         {currentChannel ? (
-          messages && messages.length > 0 ? (
-            messages.map((message, index) => (
+          filteredMessages && filteredMessages.length > 0 ? (
+            filteredMessages.map((message, index) => (
               <MessageBox
                 key={message._id || index}
                 messageContent={message.message}
                 senderId={message.senderId}
-                lastSenderId={index > 0 ? messages[index - 1].senderId : null}
+                lastSenderId={
+                  index > 0 ? filteredMessages[index - 1].senderId : null
+                }
                 createdAt={message.createdAt}
-                lastCreatedAt={index > 0 ? messages[index - 1].createdAt : null}
+                lastCreatedAt={
+                  index > 0 ? filteredMessages[index - 1].createdAt : null
+                }
+                messageId={message._id}
+                userId={user._id}
+                isEdited={message.edited}
+                popupMessageId={popupMessageId}
+                setPopupMessageId={setPopupMessageId}
+                fileUrl={message.fileUrl}
+                fileType={message.fileType}
+                setPopup={setPopup}
+                showPopup={showPopup}
+                isBlocked={recieverInfo.isBlocked}
+                setReply={setReply}
+                repliedMessages={message.replyTo}
+                setRepliedContent={setRepliedContent}
+                blockedUsers={user.blockedUsers}
               />
             ))
           ) : (
@@ -154,11 +196,19 @@ const ChatWindow = ({ user }) => {
           </h1>
         )}
       </div>
-      {typingId == currentChannel
-        ? isTyping && (
-            <h1 className="text-white text-2xl relative z-40">{`${recieverInfo.username} is typing`}</h1>
-          )
-        : ""}
+      <div className="relative">
+        {currentChannel && typingId == currentChannel && (
+          <TypingIndicator typerUser={recieverInfo?.username} />
+        )}
+      </div>
+
+      {replyTo && currentChannel == recieverInfo?.id && (
+        <ReplyBar
+          setRepliedContent={setRepliedContent}
+          setReply={setReply}
+          repliedContent={repliedContent}
+        />
+      )}
       {currentChannel && (
         <ChatBox
           currentChannel={currentChannel}
@@ -166,6 +216,11 @@ const ChatWindow = ({ user }) => {
           isTyping={isTyping}
           setTyping={setTyping}
           recieverId={currentChannel}
+          userAvatar={user?.avatarURL || defaultPfp}
+          userUsername={user.username}
+          userDisplayName={user.displayName}
+          replyTo={replyTo}
+          isGroup={false}
         />
       )}
       <div ref={bottomRef} />

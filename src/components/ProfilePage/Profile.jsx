@@ -8,6 +8,9 @@ import ChangeUsername from "./Username/ChangeUsername";
 import ChangeDisplayname from "./Displayname/ChangeDisplayname";
 import ChangeBio from "./ChangeBio";
 import PageLoad from "../HomePage/PageLoad";
+import { io } from "socket.io-client";
+
+const socket = io("http://localhost:3000");
 
 const Profile = () => {
   const navigate = useNavigate();
@@ -30,7 +33,8 @@ const Profile = () => {
   };
   useEffect(() => {
     verifyToken();
-  }, [user]);
+  }, []);
+
   return (
     <div>
       {user ? (

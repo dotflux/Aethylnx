@@ -6,7 +6,7 @@ import validator from "validator";
 dotenv.config();
 
 export const changeBio = async (req, res) => {
-  const userId = req.body.id;
+  const userId = req.body.userId;
   const newBio = req.body.bio;
   const user = await userModel.findOne({ userId: userId });
 

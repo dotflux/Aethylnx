@@ -1,13 +1,19 @@
-import React from "react";
+import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
 import defaultPfp from "../../assets/defaultPfp.png";
 import userSettings from "../../assets/userSettings.svg";
-import userGroup from "../../assets/usergroup.svg";
+import userGroup from "../../assets/groupAdd.svg";
+import createGroup from "../../assets/usergroup.svg";
 import messageIcon from "../../assets/messages.svg";
+import UserInfoPopup from "./UserInfoPopup";
+import GroupCreateModal from "./GroupCreateModal";
 
 const BelowBar = ({ user }) => {
   const navigate = useNavigate();
+  const [showPopup, setShowPopup] = useState(false);
+  const [showGroupModal, setShowGroupModal] = useState(false);
+
   return (
     <div>
       {user ? (
@@ -28,9 +34,7 @@ const BelowBar = ({ user }) => {
               if (statusElement)
                 statusElement.innerText = user.isActive ? "Online" : "Offline";
             }}
-            onClick={() => {
-              navigate("/profile");
-            }}
+            onClick={() => setShowPopup(!showPopup)} // Toggle popup visibility
           >
             <div className="relative flex items-center">
               <img
@@ -56,14 +60,45 @@ const BelowBar = ({ user }) => {
             </div>
           </div>
 
+          {/* UserInfoPopup */}
+          {showPopup && (
+            <div className="absolute bottom-14 left-4">
+              <UserInfoPopup
+                avatarUrl={user.avatarURL}
+                username={user.username}
+                displayname={user.displayName}
+                isActive={user.isActive}
+                bio={user.bio}
+                showProfileButtons={true}
+                closePopup={() => setShowPopup(false)}
+              />
+            </div>
+          )}
+
+          {showGroupModal && (
+            <div>
+              <GroupCreateModal
+                user={user}
+                isOpen={showGroupModal}
+                onClose={() => setShowGroupModal(false)}
+              />
+            </div>
+          )}
+
           {/* Navigation Icons */}
           <div className="flex space-x-6 items-center justify-center m-auto">
-            <Link to="/home/friends">
+            <Link to="/home/find">
               <img src={userGroup} alt="Friends" className="h-6 w-6" />
             </Link>
             <Link to="/home">
               <img src={messageIcon} alt="Messages" className="h-6 w-6" />
             </Link>
+            <img
+              src={createGroup}
+              alt="Group"
+              className="h-6 w-6 hover:cursor-pointer"
+              onClick={() => setShowGroupModal(true)}
+            />
             <Link to="/home/settings">
               <img src={userSettings} alt="Settings" className="h-6 w-6" />
             </Link>

@@ -26,12 +26,12 @@ export const changePfp = async (req, res) => {
     return res.status(501).json({ valid: false, message: "Invalid User Id" });
   }
 
-  const user = await userModel.findOne({ userId: userId });
+  const user = await userModel.findOne({ userId: decoded.id });
 
   if (!user) {
     return res
       .status(400)
-      .jdon({ valid: false, error: "Internal Server Error (Try Refreshing)" });
+      .json({ valid: false, error: "Internal Server Error (Try Refreshing)" });
   }
   try {
     // Upload the image to Cloudinary
@@ -47,7 +47,12 @@ export const changePfp = async (req, res) => {
 
         // Once uploaded, you get the URL of the image
         const imageUrl = cloudinaryResult.secure_url;
-
+        if (user.avatarURL !== "") {
+          const publicId = user.avatarURL.split("/").pop().split(".")[0];
+          await cloudinary.uploader.destroy(publicId, {
+            resource_type: "image",
+          });
+        }
         // Find the user and update their profile picture
         user.avatarURL = imageUrl;
         await user.save();
@@ -63,7 +68,7 @@ export const changePfp = async (req, res) => {
 
     result.end(req.file.buffer); // Pass the file buffer to Cloudinary for upload
   } catch (err) {
-    console.error("Error:", err);
+    console.error("Error in changing individual pfp: ", err);
     res.status(500).json({ error: "Server error" });
   }
 };

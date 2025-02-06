@@ -2,6 +2,11 @@ import React, { useState, useEffect } from "react";
 import defaultPfp from "../../assets/defaultPfp.png";
 import MessageLoader from "./MessageLoader";
 import { io } from "socket.io-client";
+import editIcon from "../../assets/edit.svg";
+import deleteIcon from "../../assets/deleteIcon.svg";
+import replyIcon from "../../assets/reply.svg";
+import UngroupedMessages from "./UngroupedMessages";
+import GroupedMessages from "./GroupedMessages";
 
 const socket = io("http://localhost:3000");
 
@@ -9,104 +14,141 @@ const MessageBox = ({
   messageContent,
   senderId,
   lastSenderId,
-  lastCreatedAt,
   createdAt,
+  lastCreatedAt,
+  messageId,
+  userId,
+  isEdited,
+  popupMessageId,
+  setPopupMessageId,
+  fileUrl,
+  fileType,
+  setPopup,
+  showPopup,
+  isBlocked,
+  setReply,
+  repliedMessages,
+  setRepliedContent,
+  setSender,
+  isSystem,
+  blockedUsers,
 }) => {
   const [senderInfo, setSenderInfo] = useState(null);
   const [displayDate, setDisplayDate] = useState("");
+  const [isHovered, setIsHovered] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+  const [repliedTo, setReplied] = useState(null);
 
-  // Fetch sender details based on senderId
-  const fetchSenderInfo = async () => {
+  const closePopup = () => setPopupMessageId(null);
+
+  const deleteMsg = async () => {
     if (!senderId) return;
-    const response = await fetch("http://localhost:3000/sender/details", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      credentials: "include",
-      body: JSON.stringify({ senderId }),
-    });
-    const result = await response.json();
-    if (result.valid) {
-      setSenderInfo(result.senderDetails);
-    } else {
-      console.error(result.error);
+    try {
+      const response = await fetch(`http://localhost:3000/message/delete`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          senderId: senderId,
+          messageId: messageId,
+        }),
+        credentials: "include",
+      });
+      const result = await response.json();
+      if (result.valid && response.ok) {
+        socket.emit("delete_message", messageId);
+      } else {
+        console.error(result.error);
+
+        return;
+      }
+    } catch (error) {
+      console.error("Error fetching messages:", error);
+    }
+  };
+  const replyMsg = async () => {
+    setReply(messageId);
+    setRepliedContent(messageContent);
+  };
+
+  const fetchReply = async () => {
+    if (!repliedMessages) return;
+    try {
+      const response = await fetch(`http://localhost:3000/message/byId`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          messageId: repliedMessages,
+        }),
+        credentials: "include",
+      });
+      const result = await response.json();
+      if (!result.valid && response.ok) {
+        setReplied(result.repliedTo);
+      }
+      if (result.valid && response.ok) {
+        setReplied(result.repliedTo);
+        setReply(null);
+        setRepliedContent(null);
+      } else {
+        console.error(result.error);
+
+        return;
+      }
+    } catch (error) {
+      console.error("Error fetching messages:", error);
     }
   };
 
-  // Function to format the date in the user's local timezone
-  const formatDate = (timestamp) => {
-    const dateObj = new Date(timestamp);
-    const now = new Date();
-
-    const isToday =
-      dateObj.getDate() === now.getDate() &&
-      dateObj.getMonth() === now.getMonth() &&
-      dateObj.getFullYear() === now.getFullYear();
-
-    const yesterday = new Date();
-    yesterday.setDate(yesterday.getDate() - 1);
-
-    const isYesterday =
-      dateObj.getDate() === yesterday.getDate() &&
-      dateObj.getMonth() === yesterday.getMonth() &&
-      dateObj.getFullYear() === yesterday.getFullYear();
-
-    if (isToday) {
-      return `Today ${dateObj.toLocaleTimeString([], {
-        hour: "2-digit",
-        minute: "2-digit",
-      })}`;
-    }
-
-    if (isYesterday) {
-      return `Yesterday ${dateObj.toLocaleTimeString([], {
-        hour: "2-digit",
-        minute: "2-digit",
-      })}`;
-    }
-
-    return dateObj.toLocaleString("en-US", {
-      weekday: "short",
-      year: "numeric",
-      month: "short",
-      day: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-    });
-  };
-
-  // Compare timestamps to check if a new message group should start
-  const checkGrouping = () => {
-    if (!createdAt) return;
-
-    const currentTime = new Date(createdAt).getTime();
-
-    // Always display the date for the first message
-    if (!lastCreatedAt) {
-      setDisplayDate(formatDate(createdAt));
-      return;
-    }
-
-    const lastTime = new Date(lastCreatedAt).getTime();
-
-    // Check if the time difference is more than 1 minute
-    if (currentTime - lastTime > 60000) {
-      setDisplayDate(formatDate(createdAt));
-    } else {
-      setDisplayDate("");
-    }
-  };
-
-  // Effect to fetch sender info and check grouping on each message
   useEffect(() => {
+    socket.on("edit_message", (data) => {
+      fetchReply();
+    });
+    socket.on("delete_message", (data) => {
+      fetchReply();
+    });
+  }, []);
+
+  useEffect(() => {
+    fetchReply();
+  }, [repliedMessages]);
+
+  const togglePopup = () => {
+    setPopupMessageId((prevId) => (prevId === messageId ? null : messageId));
+    if (showPopup) setPopup(false);
+  };
+
+  // Fetch sender info when the sender changes
+  useEffect(() => {
+    if (!senderId) return;
+
+    const fetchSenderInfo = async () => {
+      const response = await fetch("http://localhost:3000/sender/details", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+        body: JSON.stringify({ senderId }),
+      });
+      const result = await response.json();
+      if (result.valid && response.ok) {
+        setSenderInfo(result.senderDetails);
+        if (setSender) setSender(result.senderDetails);
+      } else {
+        console.error(result.error);
+      }
+    };
+
     fetchSenderInfo();
-    checkGrouping();
-  }, [senderId, createdAt, senderInfo]);
+  }, [senderId]);
 
   useEffect(() => {
     socket.on("profileUpdated", (updatedUser) => {
-      if (updatedUser._id === senderInfo._id) {
+      if (updatedUser.id === senderId) {
         setSenderInfo((prevUser) => ({ ...prevUser, ...updatedUser })); // Merge old and updated user data
       }
     });
@@ -114,53 +156,103 @@ const MessageBox = ({
     return () => {
       socket.off("profileUpdated");
     };
-  }, [senderId, senderInfo]);
+  }, []);
 
   return (
     <div
-      className={`w-full ${senderId !== lastSenderId && "mt-4"} ${
-        displayDate && "mt-4"
-      }`}
+      className={`w-full hover:bg-slate-900 hover:rounded-lg ${
+        senderId !== lastSenderId && "mt-4"
+      } ${displayDate ? "mt-4" : ""}`}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
     >
-      {senderInfo ? (
-        <div className="flex items-start">
-          {senderId !== lastSenderId || displayDate ? (
-            <>
-              <img
-                src={
-                  senderInfo.avatarURL === ""
-                    ? defaultPfp
-                    : senderInfo.avatarURL
-                }
-                alt="Sender's Profile"
-                className="w-10 h-10 rounded-full mr-2"
-              />
-              <div className="flex flex-col ml-2">
-                <div className="flex items-center">
-                  <p className="text-sm text-slate-100 mr-2 font-bold">
-                    {senderInfo.displayName === ""
-                      ? senderInfo.username
-                      : senderInfo.displayName}
-                  </p>
-                  {displayDate && (
-                    <p className="text-xs text-slate-400">{displayDate}</p>
-                  )}
-                </div>
-                <p className="text-md text-white break-words whitespace-pre-wrap">
-                  {messageContent}
-                </p>
-              </div>
-            </>
-          ) : (
-            <div className="ml-14">
-              <p className="text-md text-white break-words whitespace-pre-wrap mt-0.5">
-                {messageContent}
-              </p>
-            </div>
-          )}
+      {isSystem ? (
+        <div className="bg-slate-800 mb-2">
+          <h2 className="text-white text-center text-sm">{messageContent}</h2>
         </div>
       ) : (
-        <MessageLoader />
+        <div>
+          {senderInfo ? (
+            <div className="flex items-start">
+              {(senderId !== lastSenderId || displayDate) && (
+                <UngroupedMessages
+                  senderInfo={senderInfo}
+                  closePopup={closePopup}
+                  isBlocked={isBlocked}
+                  popupMessageId={popupMessageId}
+                  defaultPfp={defaultPfp}
+                  displayDate={displayDate}
+                  messageId={messageId}
+                  messageContent={messageContent}
+                  fileUrl={fileUrl}
+                  fileType={fileType}
+                  isEdited={isEdited}
+                  userId={userId}
+                  senderId={senderId}
+                  isEditing={isEditing}
+                  setIsEditing={setIsEditing}
+                  socket={socket}
+                  togglePopup={togglePopup}
+                  repliedMessages={repliedMessages}
+                  repliedTo={repliedTo}
+                  blockedUsers={blockedUsers}
+                />
+              )}
+              <GroupedMessages
+                displayDate={displayDate}
+                messageId={messageId}
+                messageContent={messageContent}
+                fileUrl={fileUrl}
+                fileType={fileType}
+                isEdited={isEdited}
+                userId={userId}
+                senderId={senderId}
+                isEditing={isEditing}
+                setIsEditing={setIsEditing}
+                socket={socket}
+                createdAt={createdAt}
+                lastSenderId={lastSenderId}
+                lastCreatedAt={lastCreatedAt}
+                setDisplayDate={setDisplayDate}
+                repliedMessages={repliedMessages}
+                repliedTo={repliedTo}
+                blockedUsers={blockedUsers}
+              />
+
+              {/* Edit/Delete Buttons */}
+              {isHovered && (
+                <div className="flex items-center space-x-2 ml-auto">
+                  <img
+                    src={replyIcon}
+                    alt="reply"
+                    className="w-5 h-5 cursor-pointer"
+                    onClick={() => replyMsg()}
+                  />
+                  {userId === senderId && (
+                    <div className="flex items-center space-x-2 ml-auto">
+                      <img
+                        src={editIcon}
+                        alt="Edit"
+                        className="w-5 h-5 cursor-pointer"
+                        onClick={() => {
+                          setIsEditing(true);
+                        }}
+                      />
+                      <img
+                        src={deleteIcon}
+                        alt="Delete"
+                        className="w-5 h-5 cursor-pointer"
+                        onClick={() => deleteMsg()}
+                      />
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          ) : (
+            <MessageLoader />
+          )}
+        </div>
       )}
     </div>
   );

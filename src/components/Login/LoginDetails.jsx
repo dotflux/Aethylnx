@@ -206,7 +206,6 @@ const LoginDetails = () => {
           </div>
         </form>
       </div>
-      <ToastContainer />
     </div>
   );
 };

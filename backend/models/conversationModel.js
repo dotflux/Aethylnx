@@ -1,4 +1,4 @@
-import mongoose from "mongoose";
+import mongoose, { Mongoose } from "mongoose";
 import dotenv from "dotenv";
 
 dotenv.config();
@@ -15,6 +15,12 @@ const convSchema = new mongoose.Schema(
     participants: [{ type: mongoose.Schema.Types.ObjectId, ref: "usersInfo" }],
     messages: [
       { type: mongoose.Schema.Types.ObjectId, ref: "messages", default: [] },
+    ],
+    isGroup: { type: Boolean, default: false },
+    groupAvatar: { type: String, default: null },
+    groupName: { type: String, default: null },
+    admins: [
+      { type: mongoose.Schema.Types.ObjectId, ref: "usersInfo", default: [] },
     ],
   },
   { timestamps: true }

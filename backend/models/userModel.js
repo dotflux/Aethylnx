@@ -25,6 +25,8 @@ const userSchema = new mongoose.Schema(
       {
         id: { type: mongoose.Schema.Types.ObjectId, ref: "conversations" },
         participant: { type: mongoose.Schema.Types.ObjectId, ref: "userInfo" },
+        isGroup: { type: Boolean, default: false },
+        unreadCounter: { type: Number, default: 0 },
       },
     ],
     contacts: [{ type: mongoose.Schema.Types.ObjectId, ref: "userInfo" }],

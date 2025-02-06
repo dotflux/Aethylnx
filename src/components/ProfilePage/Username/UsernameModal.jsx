@@ -49,8 +49,10 @@ const UsernameModal = ({ user, isOpen, onClose }) => {
         reset();
         onClose();
         socket.emit("profileUpdated", {
+          id: user._id,
           username: data.username,
         });
+        user.username = data.username;
       }
       if (r.status === 500) {
         reset();

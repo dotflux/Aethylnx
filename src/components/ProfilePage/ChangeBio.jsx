@@ -28,7 +28,8 @@ const ChangeBio = ({ user }) => {
         },
         body: JSON.stringify({
           bio: bio,
-          id: user.userId,
+          userId: user.userId,
+          id: user._id,
         }),
       });
 
@@ -80,6 +81,7 @@ const ChangeBio = ({ user }) => {
         socket.emit("profileUpdated", {
           bio: bio,
         });
+        user.bio = bio;
       }
     } catch (err) {
       console.log("Network error:", err);
@@ -110,7 +112,6 @@ const ChangeBio = ({ user }) => {
           Change Bio
         </button>
       </div>
-      <ToastContainer />
     </div>
   );
 };
