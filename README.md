@@ -27,7 +27,7 @@ Aethylnx is a full-stack chat application featuring real-time messaging, group c
 ### Installation
 1. **Clone the repository:**
    ```bash
-   git clone https://github.com/yourusername/aethylnx.git
+   git clone https://github.com/dotflux/aethylnx.git
    cd aethylnx
    ```
 2. **Install dependencies:**
@@ -78,5 +78,3 @@ npm run build
 MIT
 
 ---
-
-*Replace `yourusername` in the clone URL with your GitHub username if publishing.*
