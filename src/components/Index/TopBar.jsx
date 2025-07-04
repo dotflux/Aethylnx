@@ -9,7 +9,7 @@ const ButtonAnimatedGradient = ({ condition }) => {
   return (
     <div>
       <Link to={condition ? "/login" : "/home"}>
-        <button className="transition-background inline-flex h-12 items-center justify-center rounded-md border border-gray-800 bg-gradient-to-r from-gray-100 via-[#c7d2fe] to-[#8678f9] bg-[length:200%_200%] bg-[0%_0%] px-6 font-medium text-gray-950 duration-500 hover:bg-[100%_200%] focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2 focus:ring-offset-gray-50">
+        <button className="transition-background inline-flex h-12 items-center justify-center rounded-md border border-[#8678f9]/60 bg-gradient-to-r from-[#2d2250]/80 via-[#8678f9]/80 to-[#3a3a6d]/80 bg-[length:200%_200%] bg-[0%_0%] px-6 font-medium text-white shadow-xl backdrop-blur-md backdrop-saturate-150 duration-500 hover:bg-[100%_200%] hover:shadow-2xl focus:outline-none focus:ring-2 focus:ring-[#8678f9] focus:ring-offset-2 focus:ring-offset-gray-900">
           {condition ? "Login" : "Open App"}
         </button>
       </Link>
@@ -19,7 +19,7 @@ const ButtonAnimatedGradient = ({ condition }) => {
 
 const TopBar = ({ condition }) => {
   return (
-    <div className="flex justify-between items-center p-4">
+    <div className="flex justify-between items-center p-4 bg-black/30 backdrop-blur-md shadow-lg rounded-b-2xl border-b border-[#8678f9]/20">
       {/* Logo */}
       <Link to="/">
         <img src={myLogo} alt="logo" className="h-24 w-24" />
