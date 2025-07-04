@@ -2,6 +2,8 @@
 
 Aethylnx is a full-stack chat application featuring real-time messaging, group chats, user authentication, and media sharing. Built with a React + Vite frontend and an Express/MongoDB backend, it supports modern chat features and a clean, responsive UI.
 
+![landing_page](https://github.com/dotflux/Aethylnx/blob/b6c973e443a43126b6409f1b0bc0d8d54a970219/landing_page.png)
+
 ## Features
 - Real-time 1:1 and group chat (Socket.io)
 - User authentication (JWT)
@@ -68,6 +70,24 @@ npm run dev
 ```bash
 npm run build
 ```
+
+## SignUp
+
+User can create their accounts here to venture into Aethylnx.
+
+![signup_page](https://github.com/dotflux/Aethylnx/blob/b6c973e443a43126b6409f1b0bc0d8d54a970219/signup.png)
+
+## Profile
+
+This is how the user's profile look like to himself.
+
+![profile_modal](https://github.com/dotflux/Aethylnx/blob/b6c973e443a43126b6409f1b0bc0d8d54a970219/profile.png)
+
+## Chat
+
+A demo of how the chat looks like in Aethylnx.
+
+![chat_page](https://github.com/dotflux/Aethylnx/blob/b6c973e443a43126b6409f1b0bc0d8d54a970219/chat.png)
 
 ## Folder Structure
 - `backend/` — Express API, Socket.io, MongoDB models, business logic
